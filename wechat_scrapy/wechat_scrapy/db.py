@@ -13,4 +13,27 @@ def getAllKey():
     cursor.execute(sql)
     return cursor.fetchall()
 
+def saveArticle(url, title, keyId):
+    sql = """
+        insert sogou_content(url, title, key_id) values('%s', '%s', '%s')
+    """ % (url, title, keyId)
+    cursor = cnx.cursor()
+    try:
+        # 执行sql语句
+        cursor.execute(sql)
+        # 提交到数据库执行
+        cnx.commit()
+    except:
+    # 发生错误时回滚
+        cnx.rollback()
+
+def existsByUrl(url):
+    sql = """
+        select 1 from sogou_content where url='%s'
+    """ % url
+    cursor = cnx.cursor()
+    cursor.execute(sql)
+    return cursor.fetchall()
+
+
 # cnx.close()

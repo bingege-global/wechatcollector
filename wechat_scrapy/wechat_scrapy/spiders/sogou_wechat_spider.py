@@ -4,8 +4,8 @@ import mysql.connector
 from .. import db
 
 
-class ArticleSpider(scrapy.Spider):
-    name = "article"
+class SogouWechatSpider(scrapy.Spider):
+    name = "sogou_wechat"
     link_extractor = LinkExtractor(allow=r'^https:\/\/weixin\.sogou\.com\/link.*', restrict_css='.txt-box h3 a')
     # Set the headers here. 
     
@@ -30,20 +30,19 @@ class ArticleSpider(scrapy.Spider):
     def start_requests(self):
         baseUrl = 'https://weixin.sogou.com/weixin?type=2&s_from=input&query='
         for (id, key) in db.getAllKey():
-            test = scrapy.Request(url=baseUrl+key, callback=self.parse, headers=self.headers)
-            yield test
+            print(f'==> start request key: {key}')
+            yield scrapy.Request(url=baseUrl+key, callback=self.parse, headers=self.headers, meta={ 'keyId': id })
 
     def parse(self, response):
+        keyId = response.meta['keyId']
+        # 解析和保持文章地址
+        for link in self.link_extractor.extract_links(response):
+            if not db.existsByUrl(link.url):
+                db.saveArticle(link.url, link.text, keyId)
+
         # 解析下一页地址
         next_page = response.css('#sogou_next::attr(href)').get()
         if next_page is not None:
             next_page = response.urljoin(next_page)
             print(next_page)
-            yield scrapy.Request(next_page, callback=self.parse, headers=self.headers)
-        
-        # 解析文章地址
-        # for link in self.link_extractor.extract_links(response):
-        #     yield {
-        #         'url': link.url,
-        #         'text': link.text
-        #     }
+            yield scrapy.Request(next_page, callback=self.parse, headers=self.headers, meta={ 'keyId': keyId })

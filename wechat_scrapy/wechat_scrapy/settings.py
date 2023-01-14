@@ -8,7 +8,7 @@
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 BOT_NAME = 'wechat_scrapy'
-# LOG_LEVEL = 'INFO'
+LOG_LEVEL = 'DEBUG'
 
 SPIDER_MODULES = ['wechat_scrapy.spiders']
 NEWSPIDER_MODULE = 'wechat_scrapy.spiders'
